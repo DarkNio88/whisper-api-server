@@ -1,5 +1,5 @@
 """
-Модуль validation.py содержит классы и функции для валидации входных данных.
+Modulo validation.py contiene classi e funzioni per la validazione dei dati in ingresso.
 """
 
 import os
@@ -7,28 +7,28 @@ import magic
 from typing import Dict, List
 import logging
 
-# Получаем логгер из централизованной настройки
+# Otteniamo il logger dalla configurazione centralizzata
 logger = logging.getLogger('app.validators')
 
 
 class ValidationError(Exception):
-    """Исключение для ошибок валидации."""
+    """Eccezione per errori di validazione."""
     pass
 
 
 class FileValidator:
     """
-    Класс для валидации файлов.
-    
-    Проверяет тип файла, размер и другие параметры на основе конфигурации.
+    Classe per la validazione dei file.
+
+    Controlla il tipo di file, la dimensione e altri parametri basati sulla configurazione.
     """
     
     def __init__(self, config: Dict):
         """
-        Инициализация валидатора файлов.
-        
+        Inizializzazione del validatore dei file.
+
         Args:
-            config: Словарь с параметрами конфигурации.
+            config: Dizionario con i parametri di configurazione.
         """
         self.validation_config = config.get("file_validation", {})
         self.max_file_size_mb = self.validation_config.get("max_file_size_mb", 100)
@@ -40,56 +40,56 @@ class FileValidator:
     
     def _validate_file_extension(self, filename: str) -> None:
         """
-        Валидирует расширение файла.
-        
+        Valida l'estensione del file.
+
         Args:
-            filename: Имя файла.
-            
+            filename: Nome del file.
+
         Raises:
-            ValidationError: Если расширение файла не входит в список разрешенных.
+            ValidationError: Se l'estensione del file non è nella lista consentita.
         """
         if not any(filename.lower().endswith(ext.lower()) for ext in self.allowed_extensions):
-            # Логирование попытки загрузки файла с неразрешенным расширением
+            # Registrazione del tentativo di caricare un file con estensione non consentita
             file_extension = os.path.splitext(filename)[1]
-            logger.warning("Попытка загрузки файла с неразрешенным расширением '%s'. "
-                          "Имя файла: %s. Разрешенные расширения: %s", file_extension, filename, ", ".join(self.allowed_extensions))
+            logger.warning("Tentativo di caricare un file con estensione non consentita '%s'. "
+                          "Nome file: %s. Estensioni consentite: %s", file_extension, filename, ", ".join(self.allowed_extensions))
             
-            raise ValidationError(f"Расширение файла не разрешено. "
-                                 f"Разрешенные расширения: {', '.join(self.allowed_extensions)}")
+            raise ValidationError(f"Estensione del file non consentita. "
+                                 f"Estensioni consentite: {', '.join(self.allowed_extensions)}")
     
     def validate_file_by_path(self, file_path: str, filename: str) -> bool:
         """
-        Валидирует файл по пути на диске.
+        Valida il file dato il percorso sul disco.
 
         Args:
-            file_path: Путь к файлу.
-            filename: Имя файла (для проверки расширения).
+            file_path: Percorso del file.
+            filename: Nome del file (per verificare l'estensione).
 
         Returns:
-            True, если файл прошел валидацию.
+            True se il file ha superato la validazione.
 
         Raises:
-            ValidationError: Если файл не прошел валидацию.
+            ValidationError: Se il file non supera la validazione.
         """
-        # Проверка расширения
+        # Controllo dell'estensione
         self._validate_file_extension(filename)
 
-        # Проверка размера
+        # Controllo della dimensione
         file_size = os.path.getsize(file_path)
         max_size_bytes = self.max_file_size_mb * 1024 * 1024
         if file_size > max_size_bytes:
-            raise ValidationError(f"Размер файла ({file_size / (1024*1024):.2f} МБ) "
-                                 f"превышает максимально допустимый ({self.max_file_size_mb} МБ)")
+            raise ValidationError(f"La dimensione del file ({file_size / (1024*1024):.2f} MB) "
+                                 f"supera il massimo consentito ({self.max_file_size_mb} MB)")
 
-        # Проверка MIME-типа
+        # Controllo del tipo MIME
         try:
             mime_type = magic.from_file(file_path, mime=True)
             if mime_type not in self.allowed_mime_types:
-                raise ValidationError(f"MIME-тип файла ({mime_type}) не разрешен. "
-                                     f"Разрешенные MIME-типы: {', '.join(self.allowed_mime_types)}")
+                raise ValidationError(f"Il MIME-type del file ({mime_type}) non è consentito. "
+                                     f"MIME-type consentiti: {', '.join(self.allowed_mime_types)}")
         except ValidationError:
             raise
         except Exception as e:
-            logger.warning("Не удалось определить MIME-тип файла: %s", e)
+            logger.warning("Impossibile determinare il MIME-type del file: %s", e)
 
         return True

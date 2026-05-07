@@ -1,6 +1,6 @@
 """
-Модуль routes.py содержит классы для регистрации маршрутов API
-для сервиса распознавания речи.
+Il modulo routes.py contiene le classi per la registrazione delle route API
+del servizio di riconoscimento vocale.
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ logger = logging.getLogger('app.routes')
 
 
 class Routes:
-    """Класс для регистрации всех эндпоинтов API."""
+    """Classe per la registrazione di tutti gli endpoint API."""
 
     def __init__(self, app: Flask, transcriber: WhisperTranscriber,
                  config: Dict, file_validator: FileValidator):
@@ -39,24 +39,24 @@ class Routes:
     def _register_routes(self) -> None:
         @self.app.route('/', methods=['GET'])
         def index():
-            """Корень. Отдаёт HTML клиент."""
+            """Root. Restituisce la pagina client HTML."""
             return self.app.send_static_file('index.html')
 
         @self.app.route('/health', methods=['GET'])
         def health_check():
-            """Эндпоинт для проверки статуса сервиса."""
+            """Endpoint per verificare lo stato del servizio."""
             return jsonify({"status": "ok", "version": "1.0.0"}), 200
 
         @self.app.route('/config', methods=['GET'])
         def get_config():
-            """Эндпоинт для получения конфигурации сервиса.
-            Отдаёт полную конфигурацию включая model_path — это сознательное
-            решение, сервис работает во внутренней сети."""
+            """Endpoint per ottenere la configurazione del servizio.
+            Restituisce la configurazione completa inclusa model_path — decisione
+            consapevole: il servizio opera in rete interna."""
             return jsonify(self.config), 200
 
         @self.app.route('/v1/models', methods=['GET'])
         def list_models():
-            """Эндпоинт для получения списка доступных моделей."""
+            """Endpoint per ottenere la lista dei modelli disponibili."""
             return jsonify({
                 "data": [{
                     "id": os.path.basename(self.config["model_path"]),
@@ -69,7 +69,7 @@ class Routes:
 
         @self.app.route('/v1/models/<model_id>', methods=['GET'])
         def retrieve_model(model_id):
-            """Эндпоинт для получения информации о конкретной модели."""
+            """Endpoint per ottenere informazioni su un modello specifico."""
             if model_id == os.path.basename(self.config["model_path"]):
                 return jsonify({
                     "id": model_id,
@@ -84,7 +84,7 @@ class Routes:
 
         @self.app.route('/v1/audio/transcriptions', methods=['POST'])
         def openai_transcribe_endpoint():
-            """Эндпоинт для транскрибации аудиофайла (multipart-форма)."""
+            """Endpoint per la trascrizione di un file audio (multipart form)."""
             temp_path, filename, error = get_uploaded_file(request.files, self._max_size)
             if error:
                 return jsonify({"error": error}), 400
@@ -94,14 +94,14 @@ class Routes:
                 response, status_code = self.transcription_service.transcribe(temp_path, filename, dict(request.form))
                 return jsonify(response), status_code
             except ValidationError as e:
-                logger.warning("Ошибка валидации файла '%s': %s", filename, e)
+                logger.warning("Errore di validazione del file '%s': %s", filename, e)
                 return jsonify({"error": str(e)}), 400
             finally:
                 cleanup_temp_files([temp_path])
 
         @self.app.route('/v1/audio/transcriptions/url', methods=['POST'])
         def transcribe_from_url():
-            """Эндпоинт для транскрибации аудиофайла по URL."""
+            """Endpoint per la trascrizione di un file audio da URL."""
             data = request.json
 
             if not data or "url" not in data:
@@ -122,14 +122,14 @@ class Routes:
                 response, status_code = self.transcription_service.transcribe(temp_path, filename, params)
                 return jsonify(response), status_code
             except ValidationError as e:
-                logger.warning("Ошибка валидации файла '%s': %s", filename, e)
+                logger.warning("Errore di validazione del file '%s': %s", filename, e)
                 return jsonify({"error": str(e)}), 400
             finally:
                 cleanup_temp_files([temp_path])
 
         @self.app.route('/v1/audio/transcriptions/base64', methods=['POST'])
         def transcribe_from_base64():
-            """Эндпоинт для транскрибации аудио, закодированного в base64."""
+            """Endpoint per la trascrizione di audio codificato in base64."""
             data = request.json
 
             if not data or "file" not in data:
@@ -150,14 +150,14 @@ class Routes:
                 response, status_code = self.transcription_service.transcribe(temp_path, filename, params)
                 return jsonify(response), status_code
             except ValidationError as e:
-                logger.warning("Ошибка валидации файла '%s': %s", filename, e)
+                logger.warning("Errore di validazione del file '%s': %s", filename, e)
                 return jsonify({"error": str(e)}), 400
             finally:
                 cleanup_temp_files([temp_path])
 
         @self.app.route('/v1/audio/transcriptions/async', methods=['POST'])
         def transcribe_async():
-            """Эндпоинт для асинхронной транскрибации аудиофайла."""
+            """Endpoint per la trascrizione asincrona di un file audio."""
             temp_path, filename, error = get_uploaded_file(request.files, self._max_size)
             if error:
                 return jsonify({"error": error}), 400
@@ -169,13 +169,13 @@ class Routes:
                 return jsonify({"error": str(e)}), 400
 
             params = dict(request.form)
-            # Не чистим temp_path здесь — async task отвечает за cleanup
+            # Non pulire temp_path qui — il task asincrono si occupa della pulizia
             task_id = transcribe_audio_async(temp_path, self.transcription_service, params)
             return jsonify({"task_id": task_id}), 202
 
         @self.app.route('/v1/tasks/<task_id>', methods=['GET'])
         def get_task_status(task_id):
-            """Эндпоинт для получения статуса асинхронной задачи."""
+            """Endpoint per ottenere lo stato del task asincrono."""
             task_info = task_manager.get_task_status(task_id)
 
             if not task_info:

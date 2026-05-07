@@ -1,7 +1,7 @@
 {
     "service_port": 5042,
-    "model_path": "/home/text-generation/models/whisper/podlodka-turbo",
-    "language": "russian",
+    "model_path": "./models/whisper/whisper-large-v3-turbo-italian-lora",
+    "language": "italian",
     "enable_history": true,
     "max_history_days": 30,
     "chunk_length_s": 28,

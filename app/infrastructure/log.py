@@ -1,5 +1,5 @@
 """
-Настройка логирования и middleware для логирования HTTP-запросов.
+Configurazione del logging e middleware per la registrazione delle richieste HTTP.
 """
 
 import os
@@ -12,16 +12,16 @@ from typing import Dict, Optional
 
 def setup_logging(log_level=logging.INFO, log_file=None):
     """
-    Настройка логирования для всего приложения.
+    Configura il logging per l'intera applicazione.
 
     Args:
-        log_level: Уровень логирования (по умолчанию INFO).
-        log_file: Путь к файлу для записи логов (опционально).
+        log_level: Livello di logging (default INFO).
+        log_file: Percorso del file di log (opzionale).
     """
     root_logger = logging.getLogger()
     root_logger.setLevel(log_level)
 
-    # Очищаем существующие обработчики
+    # Rimuoviamo gli handler esistenti
     for handler in root_logger.handlers[:]:
         root_logger.removeHandler(handler)
 
@@ -35,13 +35,13 @@ def setup_logging(log_level=logging.INFO, log_file=None):
         '%(asctime)s - %(name)s - %(levelname)s - [%(type)s] %(message)s'
     )
 
-    # Консольный обработчик
+    # Handler per la console
     console_handler = logging.StreamHandler()
     console_handler.setLevel(log_level)
     console_handler.setFormatter(formatter)
     root_logger.addHandler(console_handler)
 
-    # Файловый обработчик
+    # Handler per il file di log
     if log_file:
         log_dir = os.path.dirname(log_file)
         if log_dir and not os.path.exists(log_dir):
@@ -59,7 +59,7 @@ def setup_logging(log_level=logging.INFO, log_file=None):
 
 
 class RequestLogger:
-    """Middleware для логирования HTTP-запросов и ответов."""
+    """Middleware per la registrazione delle richieste e risposte HTTP."""
 
     def __init__(self, app=None, config: Optional[Dict] = None):
         self.config = config or {}
@@ -70,7 +70,7 @@ class RequestLogger:
             self.init_app(app)
 
     def init_app(self, app):
-        """Регистрация middleware в Flask-приложении."""
+        """Registra il middleware nell'app Flask."""
         app.before_request(self._before_request)
         app.after_request(self._after_request)
 
@@ -91,7 +91,7 @@ class RequestLogger:
             return
         g.start_time = time.time()
         self.logger.info(
-            "%s %s от %s",
+            "%s %s da %s",
             request.method, request.path, self._get_client_ip(),
             extra={"type": "request"}
         )
@@ -101,7 +101,7 @@ class RequestLogger:
             return response
         processing_time = time.time() - getattr(g, 'start_time', time.time())
         self.logger.info(
-            "%s за %.3f сек",
+            "%s in %.3f sec",
             response.status_code, processing_time,
             extra={"type": "response"}
         )

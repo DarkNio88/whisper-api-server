@@ -1,5 +1,5 @@
 """
-Модуль config.py содержит функции для управления конфигурацией приложения.
+Il modulo config.py contiene funzioni per la gestione della configurazione dell'applicazione.
 """
 
 import json
@@ -12,26 +12,26 @@ logger = logging.getLogger('app.config')
 
 def load_config(config_path: str) -> Dict:
     """
-    Загружает конфигурацию из JSON-файла.
+    Carica la configurazione da un file JSON.
     
     Args:
-        config_path: Путь к файлу конфигурации.
+        config_path: Percorso del file di configurazione.
         
     Returns:
-        Словарь с параметрами конфигурации.
+        Dizionario con i parametri di configurazione.
         
     Raises:
-        FileNotFoundError: Если файл конфигурации не найден.
-        json.JSONDecodeError: Если файл конфигурации содержит некорректный JSON.
+        FileNotFoundError: Se il file di configurazione non viene trovato.
+        json.JSONDecodeError: Se il file di configurazione contiene JSON non valido.
     """
     try:
         with open(config_path, "r", encoding="utf-8") as f:
             config = json.load(f)
-        logger.info("Конфигурация успешно загружена из %s", config_path)
+        logger.info("Configurazione caricata con successo da %s", config_path)
         return config
     except FileNotFoundError as e:
-        logger.error("Файл конфигурации не найден: %s", e)
+        logger.error("File di configurazione non trovato: %s", e)
         raise
     except json.JSONDecodeError as e:
-        logger.error("Ошибка при загрузке конфигурации: %s", e)
+        logger.error("Errore durante il caricamento della configurazione: %s", e)
         raise

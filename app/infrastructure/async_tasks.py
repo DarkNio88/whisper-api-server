@@ -1,5 +1,5 @@
 """
-Модуль async_tasks.py содержит функции для асинхронной обработки задач.
+Modulo async_tasks.py contiene funzioni per l'elaborazione asincrona delle attività.
 """
 
 import copy
@@ -14,17 +14,17 @@ logger = logging.getLogger('app.async_tasks')
 
 class AsyncTaskManager:
     """
-    Менеджер асинхронных задач на основе потоков.
-    
+    Manager delle attività asincrone basato sui thread.
+
     Attributes:
-        tasks (Dict): Словарь для хранения информации о задачах.
+        tasks (Dict): Dizionario per memorizzare le informazioni sulle attività.
     """
     
-    TASK_TTL = 3600  # 1 час
+    TASK_TTL = 3600  # 1 ora
 
     def __init__(self):
         """
-        Инициализация менеджера асинхронных задач.
+        Inizializzazione del manager delle attività asincrone.
         """
         self._lock = Lock()
         self.tasks: Dict[str, Dict[str, Any]] = {}
@@ -32,15 +32,15 @@ class AsyncTaskManager:
     
     def run_task(self, func: Callable, *args, **kwargs) -> str:
         """
-        Запуск задачи в отдельном потоке.
-        
+        Avvia un'attività in un thread separato.
+
         Args:
-            func: Функция для выполнения.
-            *args: Позиционные аргументы для функции.
-            **kwargs: Именованные аргументы для функции.
-            
+            func: Funzione da eseguire.
+            *args: Argomenti posizionali per la funzione.
+            **kwargs: Argomenti nominativi per la funzione.
+
         Returns:
-            ID задачи.
+            ID dell'attività.
         """
         task_id = str(uuid.uuid4())
 
@@ -62,7 +62,7 @@ class AsyncTaskManager:
         return task_id
 
     def _cleanup_old_tasks(self) -> None:
-        """Удаляет завершённые задачи старше TASK_TTL. Вызывать под self._lock."""
+        """Elimina le attività concluse più vecchie di TASK_TTL. Deve essere chiamato sotto self._lock."""
         now = time.time()
         expired = [
             tid for tid, info in self.tasks.items()
@@ -73,13 +73,13 @@ class AsyncTaskManager:
     
     def _run_task_thread(self, task_id: str, func: Callable, args: tuple, kwargs: dict) -> None:
         """
-        Функция для выполнения задачи в потоке.
-        
+        Funzione per l'esecuzione dell'attività nel thread.
+
         Args:
-            task_id: ID задачи.
-            func: Функция для выполнения.
-            args: Позиционные аргументы для функции.
-            kwargs: Именованные аргументы для функции.
+            task_id: ID dell'attività.
+            func: Funzione da eseguire.
+            args: Argomenti posizionali per la funzione.
+            kwargs: Argomenti nominativi per la funzione.
         """
         with self._lock:
             self.tasks[task_id]["status"] = "running"
@@ -93,34 +93,34 @@ class AsyncTaskManager:
                 self.tasks[task_id]["result"] = result
                 self.tasks[task_id]["completed_at"] = time.time()
 
-            logger.info("Задача %s завершена успешно", task_id)
+            logger.info("Attività %s completata con successo", task_id)
         except Exception as e:
             with self._lock:
                 self.tasks[task_id]["status"] = "failed"
                 self.tasks[task_id]["error"] = str(e)
                 self.tasks[task_id]["completed_at"] = time.time()
 
-            logger.error("Задача %s завершилась с ошибкой: %s", task_id, e)
+            logger.error("Attività %s terminata con errore: %s", task_id, e)
     
     def get_task_status(self, task_id: str) -> Optional[Dict[str, Any]]:
         """
-        Получение статуса задачи.
-        
+        Recupera lo stato dell'attività.
+
         Args:
-            task_id: ID задачи.
-            
+            task_id: ID dell'attività.
+
         Returns:
-            Информация о задаче или None, если задача не найдена.
+            Informazioni sull'attività o None se non trovata.
         """
         with self._lock:
             task = self.tasks.get(task_id)
             return copy.deepcopy(task) if task else None
 
     def _start_cleanup_thread(self) -> None:
-        """Запуск фонового потока для периодической очистки старых задач."""
+        """Avvia un thread in background per la pulizia periodica delle attività vecchie."""
         def _cleanup_loop():
             while True:
-                time.sleep(600)  # Каждые 10 минут
+                time.sleep(600)  # Ogni 10 minuti
                 with self._lock:
                     self._cleanup_old_tasks()
 
@@ -128,21 +128,21 @@ class AsyncTaskManager:
         thread.start()
 
 
-# Глобальный экземпляр менеджера асинхронных задач
+# Istanza globale del manager delle attività asincrone
 task_manager = AsyncTaskManager()
 
 
 def transcribe_audio_async(file_path: str, transcription_service, params: Dict = None) -> str:
     """
-    Асинхронная транскрибация аудиофайла.
-    
+    Trascrizione asincrona di un file audio.
+
     Args:
-        file_path: Путь к аудиофайлу.
-        transcription_service: Экземпляр TranscriptionService.
-        params: Параметры транскрибации.
-        
+        file_path: Percorso del file audio.
+        transcription_service: Istanza di TranscriptionService.
+        params: Parametri per la trascrizione.
+
     Returns:
-        ID задачи.
+        ID dell'attività.
     """
     params = params or {}
     def _transcribe():

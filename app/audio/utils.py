@@ -1,5 +1,5 @@
 """
-Утилитарные функции для работы с аудио.
+Funzioni utilitarie per l'elaborazione audio.
 """
 
 import os
@@ -15,19 +15,19 @@ logger = logging.getLogger('app.audio_utils')
 
 def load_audio(file_path: str, sr: int = 16000) -> Tuple[np.ndarray, int]:
     """
-    Загрузка аудиофайла с использованием встроенной библиотеки wave.
+    Carica un file audio utilizzando la libreria wave.
 
     Args:
-        file_path: Путь к аудиофайлу.
-        sr: Целевая частота дискретизации.
+        file_path: Percorso del file audio.
+        sr: Frequenza di campionamento target.
 
     Returns:
-        Кортеж (массив numpy, частота дискретизации).
+        Tupla (array numpy, frequenza di campionamento).
     """
     try:
         with wave.open(file_path, 'rb') as wav_file:
             if wav_file.getnchannels() != 1:
-                logger.warning("Файл %s не моно-аудио", file_path)
+                logger.warning("Il file %s non è mono-audio", file_path)
 
             frames = wav_file.readframes(-1)
             audio_array = np.frombuffer(frames, dtype=np.int16).astype(np.float32) / 32768.0
@@ -41,22 +41,22 @@ def load_audio(file_path: str, sr: int = 16000) -> Tuple[np.ndarray, int]:
             return audio_array, sampling_rate
 
     except Exception as e:
-        logger.error("Ошибка при загрузке аудио %s: %s", file_path, e)
+        logger.error("Errore durante il caricamento dell'audio %s: %s", file_path, e)
         raise
 
 
 def get_audio_duration(file_path: str) -> float:
     """
-    Определяет длительность аудиофайла с использованием ffprobe.
+    Determina la durata del file audio usando ffprobe.
 
     Args:
-        file_path: Путь к аудиофайлу.
+        file_path: Percorso del file audio.
 
     Returns:
-        Длительность в секундах.
+        Durata in secondi.
     """
     if not os.path.exists(file_path):
-        raise Exception(f"Файл не существует: {file_path}")
+        raise Exception(f"File non esistente: {file_path}")
 
     cmd = [
         "ffprobe",
@@ -70,8 +70,8 @@ def get_audio_duration(file_path: str) -> float:
         result = subprocess.run(cmd, capture_output=True, text=True, check=True, timeout=10)
         return float(result.stdout.strip())
     except subprocess.TimeoutExpired:
-        raise Exception(f"Таймаут при определении длительности файла {file_path}")
+        raise Exception(f"Timeout nel determinare la durata del file {file_path}")
     except subprocess.CalledProcessError as e:
-        raise Exception(f"Ошибка ffprobe для файла {file_path}: {e.stderr}")
+        raise Exception(f"Errore ffprobe per il file {file_path}: {e.stderr}")
     except (ValueError, TypeError) as e:
-        raise Exception(f"Ошибка при преобразовании длительности для файла {file_path}: {e}")
+        raise Exception(f"Errore nella conversione della durata per il file {file_path}: {e}")

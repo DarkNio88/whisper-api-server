@@ -1,6 +1,6 @@
 """
-Модуль sources.py содержит функции для получения аудиофайлов
-из различных источников (загруженные файлы, URL, base64).
+Modulo sources.py contiene funzioni per ottenere file audio
+da diverse fonti (file caricati, URL, base64).
 """
 
 import os
@@ -17,7 +17,7 @@ logger = logging.getLogger('app.audio_sources')
 
 
 def _check_size(size_bytes: int, max_size_mb: int) -> Optional[str]:
-    """Проверяет размер файла. Возвращает сообщение об ошибке или None."""
+    """Controlla la dimensione del file. Restituisce un messaggio di errore o None."""
     if size_bytes > max_size_mb * 1024 * 1024:
         return f"File exceeds maximum size of {max_size_mb}MB"
     return None
@@ -25,10 +25,10 @@ def _check_size(size_bytes: int, max_size_mb: int) -> Optional[str]:
 
 def get_uploaded_file(request_files, max_file_size_mb: int = 100) -> Tuple[Optional[str], Optional[str], Optional[str]]:
     """
-    Получает аудиофайл из загруженных файлов Flask.
+    Ottiene un file audio dai file caricati tramite Flask.
 
     Returns:
-        Кортеж (путь к temp-файлу, имя файла, сообщение об ошибке).
+        Tupla (percorso al file temporaneo, nome del file, messaggio di errore).
     """
     if 'file' not in request_files:
         return None, None, "No file part"
@@ -38,7 +38,7 @@ def get_uploaded_file(request_files, max_file_size_mb: int = 100) -> Tuple[Optio
     if file.filename == '':
         return None, None, "No selected file"
 
-    # Проверка размера
+    # Controllo della dimensione
     file.seek(0, os.SEEK_END)
     size = file.tell()
     file.seek(0)
@@ -47,7 +47,7 @@ def get_uploaded_file(request_files, max_file_size_mb: int = 100) -> Tuple[Optio
     if error:
         return None, None, error
 
-    # Сохраняем во временный файл
+    # Salviamo in un file temporaneo
     temp_path = create_temp_file()
     file.save(temp_path)
 
@@ -56,29 +56,29 @@ def get_uploaded_file(request_files, max_file_size_mb: int = 100) -> Tuple[Optio
 
 def get_url_file(url: str, max_file_size_mb: int = 100) -> Tuple[Optional[str], Optional[str], Optional[str]]:
     """
-    Получает аудиофайл по URL.
+    Ottiene un file audio da un URL.
 
     Returns:
-        Кортеж (путь к temp-файлу, имя файла, сообщение об ошибке).
+        Tupla (percorso al file temporaneo, nome del file, messaggio di errore).
     """
     try:
         parsed = urlparse(url)
         if parsed.scheme not in ('http', 'https'):
             return None, None, f"Unsupported URL scheme: {parsed.scheme}. Only http/https allowed"
 
-        # SSRF-защита (валидация private IP) не добавлена сознательно:
-        # сервис работает во внутренней сети и недоступен извне
+        # Protezione SSRF (validazione IP privato) non aggiunta intenzionalmente:
+        # il servizio opera in una rete interna e non è accessibile dall'esterno
         response = requests.get(url, stream=True, timeout=30)
         response.raise_for_status()
 
-        # Проверка размера по Content-Length
+        # Controllo della dimensione tramite Content-Length
         content_length = response.headers.get('Content-Length')
         if content_length:
             error = _check_size(int(content_length), max_file_size_mb)
             if error:
                 return None, None, error
 
-        # Извлекаем имя файла из Content-Disposition или URL
+        # Estrarre il nome del file da Content-Disposition o dall'URL
         original_name = None
         cd = response.headers.get('Content-Disposition', '')
         if 'filename=' in cd:
@@ -104,19 +104,19 @@ def get_url_file(url: str, max_file_size_mb: int = 100) -> Tuple[Optional[str], 
         return temp_path, original_name or os.path.basename(temp_path), None
 
     except Exception as e:
-        logger.error("Ошибка при получении файла по URL %s: %s", url, e)
+        logger.error("Errore durante il recupero del file dall'URL %s: %s", url, e)
         return None, None, f"Error retrieving file from URL: {str(e)}"
 
 
 def get_base64_file(base64_data: str, max_file_size_mb: int = 100) -> Tuple[Optional[str], Optional[str], Optional[str]]:
     """
-    Получает аудиофайл из base64 данных.
+    Ottiene un file audio da dati base64.
 
     Returns:
-        Кортеж (путь к temp-файлу, имя файла, сообщение об ошибке).
+        Tupla (percorso al file temporaneo, nome del file, messaggio di errore).
     """
     try:
-        # Оценка размера до декодирования: base64 кодирует 3 байта в 4 символа
+        # Stima della dimensione prima della decodifica: base64 codifica 3 byte in 4 caratteri
         estimated_size = len(base64_data) * 3 // 4
         error = _check_size(estimated_size, max_file_size_mb)
         if error:
@@ -124,7 +124,7 @@ def get_base64_file(base64_data: str, max_file_size_mb: int = 100) -> Tuple[Opti
 
         audio_data = base64.b64decode(base64_data)
 
-        # Определяем формат по содержимому
+        # Determiniamo il formato in base al contenuto
         mime_to_ext = {
             "audio/mpeg": ".mp3",
             "audio/ogg": ".ogg",
@@ -144,5 +144,5 @@ def get_base64_file(base64_data: str, max_file_size_mb: int = 100) -> Tuple[Opti
         return temp_path, os.path.basename(temp_path), None
 
     except Exception as e:
-        logger.error("Ошибка при декодировании base64 данных: %s", e)
+        logger.error("Errore nella decodifica dei dati base64: %s", e)
         return None, None, f"Error decoding base64 data: {str(e)}"

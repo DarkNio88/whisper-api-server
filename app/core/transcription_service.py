@@ -1,6 +1,6 @@
 """
-Модуль transcription_service.py содержит класс TranscriptionService,
-который отвечает за транскрибацию аудиофайлов.
+Il modulo transcription_service.py contiene la classe TranscriptionService,
+che è responsabile della trascrizione dei file audio.
 """
 
 import json
@@ -17,7 +17,7 @@ logger = logging.getLogger('app.transcription_service')
 
 
 class TranscriptionService:
-    """Сервис для транскрибации аудиофайлов."""
+    """Servizio per la trascrizione dei file audio."""
 
     def __init__(self, transcriber, config: Dict):
         self.transcriber = transcriber
@@ -25,33 +25,33 @@ class TranscriptionService:
 
     def transcribe(self, file_path: str, filename: str, params: Dict = None) -> Tuple[Dict, int]:
         """
-        Транскрибирует аудиофайл по пути.
+        Trascrive un file audio dato il percorso.
 
         Args:
-            file_path: Путь к аудиофайлу.
-            filename: Имя файла (для логов и истории).
-            params: Дополнительные параметры для транскрибации.
+            file_path: Percorso del file audio.
+            filename: Nome del file (per log e cronologia).
+            params: Parametri aggiuntivi per la trascrizione.
 
         Returns:
-            Кортеж (JSON-ответ, HTTP-код).
+            Tupla (risposta JSON, codice HTTP).
         """
         params = params or {}
         language = params.get('language') or self.config.get('language', 'en')
         temperature = max(0.0, min(1.0, float(params.get('temperature', 0.0))))
         prompt = params.get('prompt', '')
 
-        # Проверяем, запрошены ли временные метки
+        # Verifichiamo se i timestamp sono stati richiesti
         return_timestamps = params.get('return_timestamps', self.config.get('return_timestamps', False))
         if isinstance(return_timestamps, str):
             return_timestamps = return_timestamps.lower() in ('true', 't', 'yes', 'y', '1')
 
         try:
-            # Определяем длительность аудиофайла
+            # Determiniamo la durata del file audio
             try:
                 duration = get_audio_duration(file_path)
             except Exception as e:
-                logger.error("Ошибка при определении длительности файла: %s", e)
-                return {"error": f"Не удалось определить длительность аудиофайла: {e}"}, 500
+                logger.error("Errore nel determinare la durata del file: %s", e)
+                return {"error": f"Impossibile determinare la durata del file audio: {e}"}, 500
 
             start_time = time.time()
             result = self.transcriber.process_file(
@@ -61,7 +61,7 @@ class TranscriptionService:
             )
             processing_time = time.time() - start_time
 
-            # Формируем ответ
+            # Formiamo la risposta
             if return_timestamps:
                 response = {
                     "segments": result.get("segments", []),
@@ -86,6 +86,6 @@ class TranscriptionService:
             return response, 200
 
         except Exception as e:
-            logger.error("Ошибка при транскрибации файла '%s': %s", filename, e)
+            logger.error("Errore durante la trascrizione del file '%s': %s", filename, e)
             logger.error("Traceback: %s", traceback.format_exc())
             return {"error": str(e)}, 500

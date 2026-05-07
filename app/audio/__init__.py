@@ -1,1 +1,1 @@
-"""Модуль audio — обработка и подготовка аудиофайлов."""
+"""Modulo audio — elaborazione e preparazione dei file audio."""

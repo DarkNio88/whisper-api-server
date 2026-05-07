@@ -1,65 +1,65 @@
 #!/bin/bash
 
-# Имя окружения conda
+# Nome dell'ambiente conda
 CONDA_ENV_NAME="whisper-api"
 
-# Флаг обновления (по умолчанию false)
+# Flag di aggiornamento (default false)
 UPDATE_ENV=false
 
-# Проверка наличия аргумента --update
+# Controllo della presenza dell'argomento --update
 if [[ "$1" == "--update" ]]; then
     UPDATE_ENV=true
 fi
 
-# Проверка наличия conda
+# Controllo presenza di conda
 if ! command -v conda &> /dev/null; then
-    echo "Conda не установлен. Пожалуйста, установите conda и попробуйте снова."
+    echo "Conda non è installato. Per favore installa conda e riprova."
     exit 1
 fi
 
-# Флаг, указывающий, было ли создано новое окружение
+# Flag che indica se è stato creato un nuovo ambiente
 NEW_ENV_CREATED=false
 
-# Создание окружения conda, если оно не существует
+# Creazione dell'ambiente conda se non esiste
 if ! conda env list | grep -q "$CONDA_ENV_NAME"; then
-    echo "Создание окружения conda: $CONDA_ENV_NAME"
+    echo "Creazione ambiente conda: $CONDA_ENV_NAME"
     conda create -n "$CONDA_ENV_NAME" python=3.12 -y
     NEW_ENV_CREATED=true
 else
-    echo "Окружение conda '$CONDA_ENV_NAME' уже существует."
+    echo "L'ambiente conda '$CONDA_ENV_NAME' esiste già."
 fi
 
-# Получение пути к conda
+# Ottenimento del percorso di conda
 CONDA_PATH=$(which conda)
 
-# Проверка, что путь к conda найден
+# Verifica che il percorso di conda sia stato trovato
 if [ -z "$CONDA_PATH" ]; then
-    echo "Не удалось найти путь к conda. Убедитесь, что conda установлен и добавлен в PATH."
+    echo "Impossibile trovare il percorso di conda. Assicurati che conda sia installato e aggiunto al PATH."
     exit 1
 fi
 
-# Активация окружения conda
-echo "Активация окружения conda: $CONDA_ENV_NAME"
+# Attivazione dell'ambiente conda
+echo "Attivazione ambiente conda: $CONDA_ENV_NAME"
 source $(dirname "$CONDA_PATH")/../etc/profile.d/conda.sh
 conda activate "$CONDA_ENV_NAME"
 
-# Установка зависимостей при первом создании окружения или при флаге --update
+# Installazione delle dipendenze al primo avvio o con il flag --update
 if [[ "$NEW_ENV_CREATED" == true || "$UPDATE_ENV" == true ]]; then
-    # Установка зависимостей из requirements.txt
+    # Installazione delle dipendenze da requirements.txt
     if [ -f "requirements.txt" ]; then
-        echo "Установка зависимостей из requirements.txt"
+        echo "Installazione delle dipendenze da requirements.txt"
         if ! pip install --no-cache-dir -r requirements.txt; then
-            echo "Ошибка при установке зависимостей."
+            echo "Errore durante l'installazione delle dipendenze."
             exit 1
         fi
     else
-        echo "Файл requirements.txt не найден. Убедитесь, что он находится в той же директории, что и скрипт."
+        echo "File requirements.txt non trovato. Assicurati che si trovi nella stessa directory dello script."
         exit 1
     fi
 fi
 
-# Запуск сервера
-echo "Запуск сервера..."
+# Avvio del server
+echo "Avvio del server..."
 python server.py --config config.json
 
-echo "Сервер остановлен."
+echo "Server fermato."

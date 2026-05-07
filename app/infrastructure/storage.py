@@ -1,5 +1,5 @@
 """
-Утилиты для управления временными файлами.
+Utilità per la gestione dei file temporanei.
 """
 
 import os
@@ -11,31 +11,31 @@ logger = logging.getLogger('app.file_manager')
 
 def create_temp_file(suffix: str = ".wav") -> str:
     """
-    Создаёт временный файл с уникальным именем.
+    Crea un file temporaneo con un nome univoco.
 
     Args:
-        suffix: Расширение временного файла.
+        suffix: Estensione del file temporaneo.
 
     Returns:
-        Путь к временному файлу.
+        Percorso del file temporaneo.
     """
     fd, temp_path = tempfile.mkstemp(suffix=suffix)
     os.close(fd)
-    logger.debug("Создан временный файл: %s", temp_path)
+    logger.debug("File temporaneo creato: %s", temp_path)
     return temp_path
 
 
 def cleanup_temp_files(file_paths: list) -> None:
     """
-    Удаляет временные файлы.
+    Rimuove i file temporanei.
 
     Args:
-        file_paths: Список путей к файлам для удаления.
+        file_paths: Lista dei percorsi dei file da eliminare.
     """
     for path in file_paths:
         try:
             if os.path.exists(path):
                 os.remove(path)
-                logger.debug("Удалён временный файл: %s", path)
+                logger.debug("File temporaneo rimosso: %s", path)
         except Exception as e:
-            logger.warning("Не удалось очистить временный файл %s: %s", path, e)
+            logger.warning("Impossibile rimuovere il file temporaneo %s: %s", path, e)

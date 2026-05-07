@@ -60,5 +60,5 @@ Non-negotiable. Violation = stop and fix before continuing.
 ## Deploy
 
 * Server: `ssh orange`, path `/home/text-generation/servers/whisper-api`
-* Обновление: `git push` → `ssh orange "cd /home/text-generation/servers/whisper-api && git pull"` → перезапуск сервиса через systemd (`whisper.service`)
-* Проверка: `ssh orange "curl -s http://localhost:5042/health"`
+* Aggiornamento: `git push` → `ssh orange "cd /home/text-generation/servers/whisper-api && git pull"` → riavvio del servizio tramite systemd (`whisper.service`)
+* Verifica: `ssh orange "curl -s http://localhost:5042/health"`

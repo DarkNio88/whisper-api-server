@@ -1,6 +1,6 @@
 """
-Главный модуль приложения, содержащий класс WhisperServiceAPI для инициализации
-и запуска сервиса распознавания речи.
+Modulo principale dell'applicazione, contenente la classe WhisperServiceAPI
+per l'inizializzazione e l'avvio del servizio di riconoscimento vocale.
 """
 
 __all__ = ['WhisperServiceAPI']
@@ -21,63 +21,63 @@ from .infrastructure.log import setup_logging, RequestLogger
 
 class WhisperServiceAPI:
     """
-    Класс для API сервиса распознавания речи.
-    
+    Classe per l'API del servizio di riconoscimento vocale.
+
     Attributes:
-        config (Dict): Словарь с параметрами конфигурации.
-        port (int): Порт для сервиса.
-        transcriber (WhisperTranscriber): Экземпляр транскрайбера.
-        app (Flask): Flask-приложение.
-        file_validator (FileValidator): Валидатор файлов.
+        config (Dict): Dizionario con i parametri di configurazione.
+        port (int): Porta del servizio.
+        transcriber (WhisperTranscriber): Istanza del transcriber.
+        app (Flask): Applicazione Flask.
+        file_validator (FileValidator): Validatore dei file.
     """
 
     def __init__(self, config_path: str):
         """
-        Инициализация API сервиса.
+        Inizializzazione dell'API del servizio.
 
         Args:
-            config_path: Путь к конфигурационному файлу.
+            config_path: Percorso al file di configurazione.
         """
-        # Загрузка конфигурации
+        # Caricamento della configurazione
         self.config = load_config(config_path)
         
-        # Установка уровня логирования
+        # Impostazione del livello di logging
         log_level = getattr(logging, self.config.get('log_level', 'INFO').upper())
         log_file = self.config.get('log_file')
         setup_logging(log_level=log_level, log_file=log_file)
         
-        # Получаем логгер для этого модуля
+        # Otteniamo il logger per questo modulo
         self.logger = logging.getLogger('app')
-        self.logger.info("Инициализация WhisperServiceAPI")
+        self.logger.info("Inizializzazione WhisperServiceAPI")
         
-        # Инициализация Flask приложения
+        # Inizializzazione dell'app Flask
         self.app = Flask(__name__)
         CORS(self.app)
         self.port = self.config["service_port"]
         
-        # Инициализация компонентов
+        # Inizializzazione dei componenti
         self.transcriber = WhisperTranscriber(self.config)
         self.file_validator = FileValidator(self.config)
         
-        # Настройка логирования запросов
+        # Configurazione del logging delle richieste
         request_logger_config = self.config.get('request_logging', {})
         request_logger = RequestLogger(self.app, request_logger_config)
         
-        # Регистрация маршрутов
+        # Registrazione delle route
         routes = Routes(self.app, self.transcriber, self.config, self.file_validator)
         
-        self.logger.info("WhisperServiceAPI успешно инициализирован")
+        self.logger.info("WhisperServiceAPI inizializzato con successo")
 
     def run(self) -> None:
-        """Запуск сервиса через Waitress."""
-        self.logger.info("Запуск сервиса на 0.0.0.0:%s", self.port)
+        """Avvia il servizio tramite Waitress."""
+        self.logger.info("Avvio del servizio su 0.0.0.0:%s", self.port)
         waitress.serve(self.app, host='0.0.0.0', port=self.port)
 
     def create_app(self) -> Flask:
         """
-        Создание и настройка Flask приложения (для использования с WSGI серверами).
-        
+        Creazione e configurazione dell'app Flask (per l'utilizzo con server WSGI).
+
         Returns:
-            Настроенное Flask приложение.
+            Applicazione Flask configurata.
         """
         return self.app

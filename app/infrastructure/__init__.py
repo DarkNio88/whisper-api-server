@@ -1,1 +1,1 @@
-"""Модуль infrastructure — вспомогательные компоненты сервиса."""
+"""Modulo infrastructure — componenti ausiliari del servizio."""

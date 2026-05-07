@@ -1,9 +1,9 @@
 """
-Модуль transcriber.py содержит класс WhisperTranscriber, который использует модель Whisper от 
-OpenAI для транскрибации аудиофайлов в текст. Класс включает в себя методы для загрузки модели, 
-обработки аудио (с использованием класса AudioProcessor), и выполнения транскрибации. 
-Обрабатывает выбор устройства (CPU, CUDA, MPS) для выполнения вычислений и обеспечивает 
-возможность использования Flash Attention 2 для ускорения работы модели на поддерживаемых GPU.
+Il modulo transcriber.py contiene la classe WhisperTranscriber, che utilizza il modello Whisper di
+OpenAI per trascrivere file audio in testo. La classe include metodi per il caricamento del modello,
+il processamento dell'audio (tramite AudioProcessor) e l'esecuzione della trascrizione.
+Gestisce la selezione del dispositivo (CPU, CUDA, MPS) per i calcoli e offre il supporto a
+Flash Attention 2 per accelerare il modello su GPU compatibili.
 """
 
 import time
@@ -29,31 +29,31 @@ logger = logging.getLogger('app.transcriber')
 
 class WhisperTranscriber:
     """
-    Класс для распознавания речи с помощью модели Whisper.
-    
+    Classe per il riconoscimento vocale tramite il modello Whisper.
+
     Attributes:
-        config (Dict): Словарь с параметрами конфигурации.
-        model_path (str): Путь к модели Whisper.
-        language (str): Язык распознавания.
-        chunk_length_s (int): Длина аудиочанка в секундах.
-        batch_size (int): Размер пакета для обработки.
-        max_new_tokens (int): Максимальное количество новых токенов для генерации.
-        return_timestamps (bool): Флаг возврата временных меток.
-        temperature (float): Параметр температуры для генерации.
-        torch_dtype (torch.dtype): Оптимальный тип данных для тензоров.
-        audio_processor (AudioProcessor): Объект для обработки аудио.
-        device (torch.device): Устройство для вычислений.
-        model (WhisperForConditionalGeneration): Загруженная модель Whisper.
-        processor (WhisperProcessor): Процессор для модели Whisper.
-        asr_pipeline (pipeline): Пайплайн для автоматического распознавания речи.
+        config (Dict): Dizionario con i parametri di configurazione.
+        model_path (str): Percorso del modello Whisper.
+        language (str): Lingua di riconoscimento.
+        chunk_length_s (int): Lunghezza del chunk audio in secondi.
+        batch_size (int): Dimensione del batch per l'elaborazione.
+        max_new_tokens (int): Numero massimo di nuovi token per la generazione.
+        return_timestamps (bool): Flag per restituire i timestamp.
+        temperature (float): Parametro di temperatura per la generazione.
+        torch_dtype (torch.dtype): Tipo dati ottimale per i tensori.
+        audio_processor (AudioProcessor): Oggetto per il processamento audio.
+        device (torch.device): Dispositivo per i calcoli.
+        model (WhisperForConditionalGeneration): Modello Whisper caricato.
+        processor (WhisperProcessor): Processor per il modello Whisper.
+        asr_pipeline (pipeline): Pipeline per il riconoscimento automatico del parlato.
     """
     
     def __init__(self, config: Dict):
         """
-        Инициализация транскрайбера.
+        Inizializzazione del transcriber.
 
         Args:
-            config: Словарь с параметрами конфигурации.
+            config: Dizionario con i parametri di configurazione.
         """
         self.config = config
         self.model_path = config["model_path"]
@@ -64,65 +64,65 @@ class WhisperTranscriber:
         self.return_timestamps = config["return_timestamps"]
         self.temperature = config["temperature"]
 
-        # Lock для потокобезопасного доступа к модели —
-        # Waitress обслуживает запросы в нескольких потоках,
-        # а HuggingFace pipeline не является thread-safe
+        # Lock per l'accesso thread-safe al modello —
+        # Waitress serve richieste in più thread,
+        # mentre la pipeline di HuggingFace non è thread-safe
         self._inference_lock = threading.Lock()
 
-        # Создаем объект для обработки аудио
+        # Creiamo l'oggetto per l'elaborazione audio
         self.audio_processor = AudioProcessor(config)
 
-        # Определяем устройство для вычислений
+        # Determiniamo il dispositivo per i calcoli
         self.device = self._get_device()
 
-        # Оптимальный тип для тензоров (зависит от устройства)
+        # Tipo dati ottimale per i tensori (dipende dal dispositivo)
         self.torch_dtype = self._get_torch_dtype()
 
-        # Загружаем модель при инициализации
+        # Carichiamo il modello durante l'inizializzazione
         self._load_model()
 
     def _get_device(self) -> torch.device:
         """
-        Определение доступного устройства для вычислений.
-        
+        Determina il dispositivo disponibile per i calcoli.
+
         Returns:
-            Объект устройства PyTorch.
+            Oggetto dispositivo di PyTorch.
         """
         if torch.cuda.is_available():
-            # Получаем device_id из конфигурации, по умолчанию 0
+            # Otteniamo device_id dalla configurazione, default 0
             device_id = self.config.get("device_id", 0)
             
-            # Проверяем, что device_id является целым числом
+            # Controlliamo che device_id sia un intero
             if not isinstance(device_id, int):
-                logger.warning("device_id должен быть целым числом, получено: %s. Используем значение по умолчанию 0", device_id)
+                logger.warning("device_id dovrebbe essere un intero, ottenuto: %s. Uso del valore predefinito 0", device_id)
                 device_id = 0
             
-            # Проверяем, доступен ли запрошенный GPU
+            # Verifichiamo se il GPU richiesto è disponibile
             device_count = torch.cuda.device_count()
             if device_id >= device_count:
-                logger.warning("Запрошенный GPU с индексом %s недоступен. Доступно GPU: %s. Используем GPU с индексом 0", device_id, device_count)
+                logger.warning("GPU richiesto con indice %s non disponibile. GPU disponibili: %s. Uso GPU indice 0", device_id, device_count)
                 device_id = 0
             
-            logger.info("Используется CUDA GPU с индексом %s для вычислений", device_id)
+            logger.info("Usando CUDA GPU con indice %s per i calcoli", device_id)
             return torch.device(f"cuda:{device_id}")
         elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
-            logger.info("Используется MPS (Apple Silicon) для вычислений")
-            # Обходное решение для MPS: PyTorch проверяет is_initialized()
-            # при создании тензоров на MPS-устройстве, что вызывает ошибку
-            # в однопроцессном режиме.
-            # TODO: Удалить после обновления до PyTorch >= 2.5
+            logger.info("Usando MPS (Apple Silicon) per i calcoli")
+            # Workaround per MPS: PyTorch verifica is_initialized()
+            # quando si creano tensori su dispositivo MPS, il che può causare errori
+            # in modalità monoprocesso.
+            # TODO: Rimuovere dopo l'aggiornamento a PyTorch >= 2.5
             setattr(torch.distributed, "is_initialized", lambda: False)
             return torch.device("mps")
         else:
-            logger.info("Используется CPU для вычислений")
+            logger.info("Usando CPU per i calcoli")
             return torch.device("cpu")
 
     def _get_torch_dtype(self) -> torch.dtype:
         """
-        Определяет оптимальный тип данных для тензоров в зависимости от устройства.
-        
+        Determina il tipo dati ottimale per i tensori in base al dispositivo.
+
         Returns:
-            torch.float32 для CPU, torch.bfloat16 для GPU/MPS.
+            torch.float32 per CPU, torch.bfloat16 per GPU/MPS.
         """
         if self.device.type == "cpu":
             return torch.float32
@@ -130,12 +130,12 @@ class WhisperTranscriber:
 
     def _load_model(self) -> None:
         """
-        Загрузка модели и процессора.
-        
+        Caricamento del modello e del processor.
+
         Raises:
-            Exception: Если не удалось загрузить модель.
+            Exception: Se non è stato possibile caricare il modello.
         """
-        logger.info("Загрузка модели из %s", self.model_path)
+        logger.info("Caricamento del modello da %s", self.model_path)
 
         model_kwargs = dict(
             torch_dtype=self.torch_dtype,
@@ -145,13 +145,13 @@ class WhisperTranscriber:
 
         use_flash_attn = False
         if self.device.type == "cuda":
-            # Flash Attention 2 требует архитектуру Ampere или новее (compute capability >= 8.0)
+            # Flash Attention 2 richiede architettura Ampere o successiva (compute capability >= 8.0)
             capability = torch.cuda.get_device_capability(self.device.index)
             if capability[0] >= 8:
                 use_flash_attn = True
-                logger.info("GPU поддерживает Flash Attention 2 (compute capability: %d.%d)", *capability)
+                logger.info("GPU supporta Flash Attention 2 (compute capability: %d.%d)", *capability)
             else:
-                logger.info("GPU не поддерживает Flash Attention 2 (compute capability: %d.%d), используется стандартный режим", *capability)
+                logger.info("GPU non supporta Flash Attention 2 (compute capability: %d.%d), uso modalità standard", *capability)
 
         try:
             if use_flash_attn:
@@ -160,9 +160,9 @@ class WhisperTranscriber:
                 self.model_path, **model_kwargs
             ).to(self.device)
             if use_flash_attn:
-                logger.info("Используется Flash Attention 2")
+                logger.info("Utilizzo di Flash Attention 2")
         except Exception as e:
-            logger.warning("Не удалось загрузить модель с Flash Attention: %s", e)
+            logger.warning("Impossibile caricare il modello con Flash Attention: %s", e)
             model_kwargs.pop("attn_implementation", None)
             self.model = WhisperForConditionalGeneration.from_pretrained(
                 self.model_path, **model_kwargs
@@ -182,25 +182,25 @@ class WhisperTranscriber:
             device=self.device,
         )
 
-        logger.info("Модель успешно загружена и готова к использованию")
+        logger.info("Modello caricato con successo e pronto all'uso")
 
     def transcribe(self, audio_path: str, return_timestamps: bool = None,
                    language: str = None, temperature: float = None,
                    prompt: str = None) -> Union[str, Dict]:
         """
-        Транскрибация аудиофайла.
+        Trascrizione del file audio.
 
         Args:
-            audio_path: Путь к обработанному аудиофайлу.
-            return_timestamps: Флаг возврата временных меток. Если None — берётся из конфига.
-            language: Язык распознавания. Если None — берётся из конфига.
-            temperature: Параметр температуры для генерации. Если None — берётся из конфига.
-            prompt: Текстовая подсказка для модели (имена, термины, контекст).
+            audio_path: Percorso del file audio processato.
+            return_timestamps: Flag per restituire i timestamp. Se None — preso dalla configurazione.
+            language: Lingua del riconoscimento. Se None — presa dalla configurazione.
+            temperature: Parametro di temperatura per la generazione. Se None — preso dalla configurazione.
+            prompt: Prompt testuale per il modello (nomi, termini, contesto).
 
         Returns:
-            В зависимости от параметра return_timestamps:
-            - Если return_timestamps=False: строка с распознанным текстом
-            - Если return_timestamps=True: словарь с ключами "segments" (список словарей с ключами start_time_ms, end_time_ms, text) и "text" (полный текст)
+            A seconda del valore di return_timestamps:
+            - Se return_timestamps=False: stringa con il testo riconosciuto
+            - Se return_timestamps=True: dizionario con chiavi "segments" (lista di dizionari con chiavi start_time_ms, end_time_ms, text) e "text" (testo completo)
         """
         if return_timestamps is None:
             return_timestamps = self.return_timestamps
@@ -209,13 +209,13 @@ class WhisperTranscriber:
         if temperature is None:
             temperature = self.temperature
 
-        logger.info("Начало транскрибации файла: %s", audio_path)
+        logger.info("Inizio trascrizione del file: %s", audio_path)
 
         try:
-            # Загрузка аудио в формате numpy array
+            # Caricamento dell'audio come array numpy
             audio_array, sampling_rate = load_audio(audio_path, sr=16000)
 
-            # Транскрибация с корректным форматом данных
+            # Trascrizione con il formato dati corretto
             generate_kwargs = {
                 "language": language,
                 "max_new_tokens": self.max_new_tokens,
@@ -233,18 +233,18 @@ class WhisperTranscriber:
                     return_timestamps=return_timestamps,
                 )
             
-            # Если временные метки не запрошены, возвращаем только текст
-            if not return_timestamps:
-                transcribed_text = result.get("text", "")
-                logger.info("Транскрибация завершена: получено %s символов текста", len(transcribed_text))
-                return transcribed_text
+                # Se i timestamp non sono richiesti, restituiamo solo il testo
+                if not return_timestamps:
+                    transcribed_text = result.get("text", "")
+                    logger.info("Trascrizione completata: ottenuti %s caratteri di testo", len(transcribed_text))
+                    return transcribed_text
             
-            # Если временные метки запрошены, обрабатываем и форматируем результат
+            # Se i timestamp sono stati richiesti, processiamo e formattiamo il risultato
             segments = []
             full_text = result.get("text", "")
             
             if "chunks" in result:
-                # Для новых версий модели Whisper
+                # Per le nuove versioni del modello Whisper
                 for chunk in result["chunks"]:
                     start_time = chunk.get("timestamp", [0, 0])[0]
                     end_time = chunk.get("timestamp", [0, 0])[1]
@@ -256,7 +256,7 @@ class WhisperTranscriber:
                         "text": text
                     })
             elif hasattr(result, "get") and "segments" in result:
-                # Для старых версий модели Whisper
+                # Per le vecchie versioni del modello Whisper
                 for segment in result["segments"]:
                     start_time = segment.get("start", 0)
                     end_time = segment.get("end", 0)
@@ -268,19 +268,19 @@ class WhisperTranscriber:
                         "text": text
                     })
             else:
-                logger.warning("Временные метки запрошены, но не найдены в результате транскрибации")
+                logger.warning("Timestamp richiesti, ma non trovati nel risultato della trascrizione")
             
-            logger.info("Транскрибация с временными метками завершена: получено %s сегментов", len(segments))
+            logger.info("Trascrizione con timestamp completata: ottenuti %s segmenti", len(segments))
             
-            # Возвращаем словарь с сегментами и полным текстом
+            # Restituiamo il dizionario con i segmenti e il testo completo
             return {
                 "segments": segments,
                 "text": full_text
             }
             
         except Exception as e:
-            logger.error("Ошибка в процессе транскрибации аудиофайла '%s': %s", audio_path, e)
-            logger.error("Тип исключения: %s", type(e).__name__)
+            logger.error("Errore durante la trascrizione del file audio '%s': %s", audio_path, e)
+            logger.error("Tipo di eccezione: %s", type(e).__name__)
             logger.error("Traceback: %s", traceback.format_exc())
             raise
 
@@ -288,46 +288,46 @@ class WhisperTranscriber:
                      language: str = None, temperature: float = None,
                      prompt: str = None) -> Union[str, Dict]:
         """
-        Полный процесс обработки и транскрибации аудиофайла.
+        Processo completo di elaborazione e trascrizione di un file audio.
 
         Args:
-            input_path: Путь к исходному аудиофайлу.
-            return_timestamps: Флаг возврата временных меток. Если None — берётся из конфига.
-            language: Язык распознавания. Если None — берётся из конфига.
-            temperature: Параметр температуры для генерации. Если None — берётся из конфига.
-            prompt: Текстовая подсказка для модели (имена, термины, контекст).
+            input_path: Percorso del file audio sorgente.
+            return_timestamps: Flag per restituire i timestamp. Se None — preso dalla configurazione.
+            language: Lingua del riconoscimento. Se None — presa dalla configurazione.
+            temperature: Parametro di temperatura per la generazione. Se None — preso dalla configurazione.
+            prompt: Prompt testuale per il modello (nomi, termini, contesto).
 
         Returns:
-            В зависимости от параметра return_timestamps:
-            - Если return_timestamps=False: строка с распознанным текстом
-            - Если return_timestamps=True: словарь с ключами "segments" и "text"
+            A seconda del valore di return_timestamps:
+            - Se return_timestamps=False: stringa con il testo riconosciuto
+            - Se return_timestamps=True: dizionario con chiavi "segments" e "text"
         """
         start_time = time.time()
-        logger.info("Начало обработки файла: %s", input_path)
+        logger.info("Inizio elaborazione del file: %s", input_path)
         
         temp_files = []
         
         try:
-            # Обработка аудио (конвертация, нормализация, добавление тишины)
+            # Elaborazione audio (conversione, normalizzazione, aggiunta silenzio)
             processed_path, temp_files = self.audio_processor.process_audio(input_path)
             
-            # Транскрибация
+            # Trascrizione
             result = self.transcribe(processed_path, return_timestamps=return_timestamps,
                                      language=language, temperature=temperature,
                                      prompt=prompt)
             
             elapsed_time = time.time() - start_time
-            logger.info("Обработка и транскрибация завершены за %.2f секунд", elapsed_time)
+            logger.info("Elaborazione e trascrizione completate in %.2f secondi", elapsed_time)
             
             return result
             
         except Exception as e:
             elapsed_time = time.time() - start_time
-            logger.error("Ошибка при обработке файла '%s' через %.2f секунд: %s", input_path, elapsed_time, e)
-            logger.error("Тип исключения: %s", type(e).__name__)
+            logger.error("Errore durante l'elaborazione del file '%s' dopo %.2f secondi: %s", input_path, elapsed_time, e)
+            logger.error("Tipo di eccezione: %s", type(e).__name__)
             logger.error("Traceback: %s", traceback.format_exc())
             raise
             
         finally:
-            # Очистка временных файлов
+            # Pulizia dei file temporanei
             cleanup_temp_files(temp_files)

@@ -1,1 +1,1 @@
-"""Модуль core — основные компоненты сервиса распознавания речи."""
+"""Modulo core — componenti principali del servizio di riconoscimento vocale."""
