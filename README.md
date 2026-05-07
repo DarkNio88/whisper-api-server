@@ -1,77 +1,77 @@
-# Whisper API server
+# Server API per Whisper
 
-A local, OpenAI-compatible speech recognition API service using the Whisper model. This service provides a straightforward way to transcribe audio files in various formats with high accuracy and is designed to be compatible with the OpenAI Whisper API.
+Servizio API locale, compatibile con OpenAI, per il riconoscimento vocale basato sul modello Whisper. Questo servizio offre un modo semplice per trascrivere file audio in vari formati con elevata accuratezza ed è progettato per essere compatibile con l'API OpenAI Whisper.
 
 ![Client Interface](client.png)
 
-## Features
+## Caratteristiche
 
-- 🔊 High-quality speech recognition using Whisper models
-- 🌐 OpenAI-compatible API endpoints
-- 🚀 Hardware acceleration support (CUDA, MPS)
-- ⚡ Flash Attention 2 for faster transcription on compatible GPUs
-- 🎛️ Audio preprocessing for better transcription results
-- 🔄 Multiple input methods (file upload, URL, base64, local files)
-- 📊 Optional timestamp generation for word-level alignment
-- 🎧 Convenient built-in client with text editing and audio playback capabilities
-- 📱 Responsive web interface included
-- 📝 Transcription history logging
+- 🔊 Riconoscimento vocale di alta qualità con i modelli Whisper
+- 🌐 Endpoint API compatibili con OpenAI
+- 🚀 Supporto per accelerazione hardware (CUDA, MPS)
+- ⚡ Flash Attention 2 per trascrizioni più rapide su GPU compatibili
+- 🎛️ Pre-elaborazione audio per risultati di trascrizione migliori
+- 🔄 Più metodi di input (upload file, URL, base64, file locali)
+- 📊 Generazione opzionale di timestamp per l'allineamento a livello di parola
+- 🎧 Comodo client integrato con modifica del testo e riproduzione audio
+- 📱 Interfaccia web responsive inclusa
+- 📝 Salvataggio storico delle trascrizioni
 
-## Requirements
+## Requisiti
 
-- Python 3.12+ recommended
-- CUDA-compatible GPU (optional, for faster processing)
-- FFmpeg and SoX for audio processing
-- Whisper model (download from Hugging Face)
+- Python 3.12+ consigliato
+- GPU compatibile con CUDA (opzionale, per prestazioni migliori)
+- FFmpeg e SoX per l'elaborazione audio
+- Modello Whisper (scaricabile da Hugging Face)
 
-## Installation
+## Installazione
 
-### Using server.sh (recommended)
+### Usando `server.sh` (consigliato)
 
-1. Clone the repository:
+1. Clona il repository:
 ```bash
-git clone https://github.com/kreolsky/whisper-api-server.git
+git clone https://github.com/DarkNio88/whisper-api-server.git
 cd whisper-api-server
 ```
 
-2. Run the server script with the update flag to create and set up the conda environment:
+2. Esegui lo script del server con il flag `--update` per creare e configurare l'ambiente conda:
 ```bash
 chmod +x server.sh
 ./server.sh --update
 ```
 
-This will:
-- Create a conda environment named "whisper-api" with Python 3.12
-- Install all required dependencies
-- Start the service
+Questo:
+- creerà un ambiente conda chiamato "whisper-api" con Python 3.12
+- installerà tutte le dipendenze richieste
+- avvierà il servizio
 
-### Manual installation
+### Installazione manuale
 
-1. Create and activate a conda environment:
+1. Crea e attiva un ambiente conda:
 ```bash
 conda create -n whisper-api python=3.12
 conda activate whisper-api
 ```
 
-2. Install the required dependencies:
+2. Installa le dipendenze richieste:
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Start the service:
+3. Avvia il servizio:
 ```bash
 python server.py
 ```
 
-## Configuration
+## Configurazione
 
-The service is configured through the `config.json` file:
+Il servizio è configurato tramite il file `config.json`:
 
 ```json
 {
     "service_port": 5042,
-    "model_path": "/path/to/whisper/model",
-    "language": "russian",
+    "model_path": "whisper/model",
+    "language": "italian",
     "enable_history": true,
     "max_history_days": 30,
     "chunk_length_s": 28,
@@ -96,74 +96,74 @@ The service is configured through the `config.json` file:
 }
 ```
 
-### Configuration parameters
+### Parametri di configurazione
 
-| Parameter | Description |
+| Parameter | Descrizione |
 |-----------|-------------|
-| `service_port` | Port on which the service will run |
-| `model_path` | Path to the Whisper model directory |
-| `language` | Language for transcription (e.g., "russian", "english") |
-| `enable_history` | Whether to save transcription history (true/false) |
-| `max_history_days` | Number of days to keep transcription history before rotation |
-| `chunk_length_s` | Length of audio chunks for processing (in seconds) |
-| `batch_size` | Batch size for processing |
-| `max_new_tokens` | Maximum new tokens for the model output |
-| `temperature` | Model temperature parameter (lower = more deterministic) |
-| `return_timestamps` | Whether to return timestamps in the transcription |
-| `audio_rate` | Audio sampling rate in Hz |
-| `norm_level` | Normalization level for audio preprocessing |
-| `compand_params` | Parameters for audio compression/expansion |
-| `device_id` | CUDA device index to use for inference |
-| `file_validation.max_file_size_mb` | Maximum allowed file size in megabytes |
-| `file_validation.allowed_extensions` | List of accepted audio file extensions |
-| `file_validation.allowed_mime_types` | List of accepted MIME types |
-| `log_level` | Logging level (DEBUG, INFO, WARNING, ERROR) |
-| `log_file` | Path to the log file |
-| `request_logging.exclude_endpoints` | Endpoints excluded from request logging |
+| `service_port` | Porta su cui girerà il servizio |
+| `model_path` | Percorso alla directory del modello Whisper |
+| `language` | Lingua per la trascrizione (es. "russian", "english", "italian", ecc.) |
+| `enable_history` | Se salvare la cronologia delle trascrizioni (true/false) |
+| `max_history_days` | Numero di giorni per cui mantenere la cronologia prima della rotazione |
+| `chunk_length_s` | Lunghezza dei chunk audio per l'elaborazione (in secondi) |
+| `batch_size` | Dimensione del batch per l'elaborazione |
+| `max_new_tokens` | Massimo numero di nuovi token per l'output del modello |
+| `temperature` | Parametro di temperatura del modello (valori bassi = più deterministico) |
+| `return_timestamps` | Se restituire i timestamp nella trascrizione |
+| `audio_rate` | Frequenza di campionamento dell'audio in Hz |
+| `norm_level` | Livello di normalizzazione per la pre-elaborazione audio |
+| `compand_params` | Parametri per compressione/espansione audio |
+| `device_id` | Indice del dispositivo CUDA da usare per l'inferenza |
+| `file_validation.max_file_size_mb` | Dimensione massima del file ammessa in megabyte |
+| `file_validation.allowed_extensions` | Elenco delle estensioni audio accettate |
+| `file_validation.allowed_mime_types` | Elenco dei MIME-type accettati |
+| `log_level` | Livello di logging (DEBUG, INFO, WARNING, ERROR) |
+| `log_file` | Percorso del file di log |
+| `request_logging.exclude_endpoints` | Endpoint esclusi dalla registrazione delle richieste |
 
-## Web interface
+## Interfaccia web
 
-The service includes a user-friendly web interface accessible at:
+L'interfaccia web è accessibile a:
 ```
 http://localhost:5042/
 ```
 
-The interface allows you to:
-- Upload audio files via drag-and-drop or file picker
-- Upload multiple files for sequential processing
-- Listen to the uploaded audio
-- Edit the transcription text if needed
-- Download results as TXT or JSON or copy results to clipboard
-- View API request/response details for debugging
+L'interfaccia permette di:
+- Caricare file audio via drag-and-drop o selettore file
+- Caricare più file per l'elaborazione sequenziale
+- Ascoltare l'audio caricato
+- Modificare il testo della trascrizione se necessario
+- Scaricare i risultati come TXT o JSON oppure copiarli negli appunti
+- Visualizzare i dettagli delle richieste/risposte API per il debug
 
-## API usage
+## Uso dell'API
 
-### Health check
+### Controllo di stato (Health check)
 
 ```bash
 curl http://localhost:5042/health
 ```
 
-### Get configuration
+### Ottenere la configurazione
 
 ```bash
 curl http://localhost:5042/config
 ```
 
-### Get available models
+### Ottenere i modelli disponibili
 
 ```bash
 curl http://localhost:5042/v1/models
 ```
 
-### Transcribe an audio file (OpenAI-compatible)
+### Trascrivere un file audio (compatibile OpenAI)
 
 ```bash
 curl -X POST http://localhost:5042/v1/audio/transcriptions \
   -F file=@audio.mp3
 ```
 
-### Transcribe from URL
+### Trascrivere da URL
 
 ```bash
 curl -X POST http://localhost:5042/v1/audio/transcriptions/url \
@@ -171,7 +171,7 @@ curl -X POST http://localhost:5042/v1/audio/transcriptions/url \
   -d '{"url":"https://example.com/audio.mp3"}'
 ```
 
-### Transcribe from base64
+### Trascrivere da base64
 
 ```bash
 curl -X POST http://localhost:5042/v1/audio/transcriptions/base64 \
@@ -179,34 +179,34 @@ curl -X POST http://localhost:5042/v1/audio/transcriptions/base64 \
   -d '{"file":"base64_encoded_audio_data"}'
 ```
 
-### Transcribe asynchronously
+### Trascrizione asincrona
 
-Submit a file for background transcription and receive a task ID:
+Invia un file per la trascrizione in background e ricevi un ID task:
 
 ```bash
 curl -X POST http://localhost:5042/v1/audio/transcriptions/async \
   -F file=@audio.mp3
 ```
 
-Response:
+Risposta:
 ```json
 {"task_id": "abc123..."}
 ```
 
-### Get async task status
+### Ottenere lo stato di un task asincrono
 
 ```bash
 curl http://localhost:5042/v1/tasks/<task_id>
 ```
 
-Response when completed:
+Risposta quando completato:
 ```json
 {"task_id": "abc123...", "status": "completed", "result": {...}}
 ```
 
-Possible statuses: `pending`, `completed`, `failed`.
+Stati possibili: `pending`, `completed`, `failed`.
 
-### Request with additional parameters
+### Richiesta con parametri aggiuntivi
 
 ```bash
 curl -X POST http://localhost:5042/v1/audio/transcriptions \
@@ -216,9 +216,9 @@ curl -X POST http://localhost:5042/v1/audio/transcriptions \
   -F temperature=0.0
 ```
 
-## Response format
+## Formato della risposta
 
-### Without timestamps
+### Senza timestamp
 
 ```json
 {
@@ -230,7 +230,7 @@ curl -X POST http://localhost:5042/v1/audio/transcriptions \
 }
 ```
 
-### With timestamps
+### Con timestamp
 
 ```json
 {
@@ -254,49 +254,49 @@ curl -X POST http://localhost:5042/v1/audio/transcriptions \
 }
 ```
 
-## Advanced usage
+## Uso avanzato
 
-### Using with different models
+### Utilizzo con modelli diversi
 
-You can use any Whisper model by changing the `model_path` in the configuration:
+Puoi usare qualsiasi modello Whisper modificando il `model_path` nella configurazione:
 
-1. Download a model from Hugging Face
-2. Update the `model_path` in `config.json`
-3. Restart the service
+1. Scarica un modello da Hugging Face
+2. Aggiorna il `model_path` in `config.json`
+3. Riavvia il servizio
 
-The recommended model for Russian speech recognition is [whisper-large-v3-russian-ties-podlodka-v1.2](https://huggingface.co/Apel-sin/whisper-large-v3-russian-ties-podlodka-v1.2).
+Il modello raccomandato per il riconoscimento vocale in russo è [whisper-large-v3-russian-ties-podlodka-v1.2](https://huggingface.co/Apel-sin/whisper-large-v3-russian-ties-podlodka-v1.2).
 
-### Hardware acceleration
+### Accelerazione hardware
 
-The service automatically selects the best available compute device:
-- CUDA GPU (device index configured via `device_id` in `config.json`)
-- Apple Silicon MPS (for Mac with M1/M2/M3 chips)
+Il servizio seleziona automaticamente il dispositivo di calcolo migliore disponibile:
+- GPU CUDA (indice dispositivo configurato tramite `device_id` in `config.json`)
+- Apple Silicon MPS (per Mac con chip M1/M2/M3)
 - CPU (fallback)
 
-For best performance on NVIDIA GPUs, Flash Attention 2 is used when available.
+Per le migliori prestazioni su GPU NVIDIA, Flash Attention 2 viene usato quando disponibile.
 
-### Transcription history
+### Cronologia delle trascrizioni
 
-When `enable_history` is set to `true`, transcription results are saved in a `history` folder organized by date. Each transcription is saved as a JSON file with the format:
+Quando `enable_history` è impostato su `true`, i risultati delle trascrizioni vengono salvati in una cartella `history` organizzata per data. Ogni trascrizione viene salvata come file JSON con il formato:
 ```
 history/
 └── YYYY-MM-DD/
     └── timestamp_filename_xxxx.json
 ```
 
-## Troubleshooting
+## Risoluzione dei problemi
 
-### Audio processing issues
+### Problemi nell'elaborazione audio
 
-If you encounter audio processing errors:
-- Ensure that FFmpeg and SoX are installed on your system
-- Check that the audio file is not corrupted
-- Try different audio preprocessing parameters in the configuration
+Se riscontri errori nell'elaborazione audio:
+- Assicurati che FFmpeg e SoX siano installati sul sistema
+- Verifica che il file audio non sia corrotto
+- Prova parametri diversi di pre-elaborazione audio nella configurazione
 
-### Performance issues
+### Problemi di prestazioni
 
-For slow transcription:
-- Use a GPU if available
-- Adjust `chunk_length_s` and `batch_size` parameters
-- Consider using a smaller Whisper model
-- Reduce `audio_rate` if full quality isn't needed
+In caso di trascrizione lenta:
+- Usa una GPU se disponibile
+- Regola i parametri `chunk_length_s` e `batch_size`
+- Considera l'uso di un modello Whisper più piccolo
+- Riduci `audio_rate` se la qualità completa non è necessaria
