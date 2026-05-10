@@ -1,6 +1,6 @@
 {
     "service_port": 5042,
-    "model_path": "./models/whisper/whisper-large-v3-turbo-italian-lora",
+    "model_path": "openai/whisper-large-v3-turbo",
     "language": "italian",
     "enable_history": true,
     "max_history_days": 30,
