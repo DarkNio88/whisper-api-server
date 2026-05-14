@@ -60,6 +60,15 @@ fi
 
 # Avvio del server
 echo "Avvio del server..."
-python server.py --config config.json
+SESSION_NAME="whisper_api_server"
+CONDA_SH="$(dirname "$CONDA_PATH")/../etc/profile.d/conda.sh"
+CMD="source \"$CONDA_SH\" && conda activate \"$CONDA_ENV_NAME\" && python server.py --config config.json"
+
+if screen -list | grep -q "\\.${SESSION_NAME}[[:space:]]"; then
+    echo "Screen session '${SESSION_NAME}' already running"
+else
+    screen -dmS "${SESSION_NAME}" bash -lc "${CMD}"
+    echo "Started screen session '${SESSION_NAME}'"
+fi
 
 echo "Server fermato."
