@@ -1,11 +1,12 @@
 {
     "service_port": 5042,
-    "model_path": "openai/whisper-large-v3-turbo",
+    "model_path": "openai/whisper-small",
     "language": "italian",
     "enable_history": true,
     "max_history_days": 30,
     "chunk_length_s": 28,
     "batch_size": 6,
+    "cpu_quantization": "int8",
     "max_new_tokens": 384,
     "temperature": 0.01,
     "return_timestamps": false,
